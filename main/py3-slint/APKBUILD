@@ -40,5 +40,7 @@ package() {
 }
 
 # Run `pmbootstrap checksum py3-slint` to populate sha512sums
-sha512sums=""
 
+sha512sums="
+e7463771e4282238bdb6e1405c0fa3bf2231254457430e3cca743331d653b4bfb4da65b94f136ecbe13a89529f2ee27aadb3b799902db51a9a45a961d1d35b48  slint-1.10.0.tar.gz
+"
