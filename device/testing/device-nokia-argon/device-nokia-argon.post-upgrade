@@ -1,8 +1,0 @@
-#!/bin/sh
-DTB_SRC="/usr/share/nokia-argon/qcom-msm8905-nokia-argon.dtb"
-if [ -f "$DTB_SRC" ]; then
-	for f in $(find /boot -name "qcom-msm8905-nokia-argon.dtb" 2>/dev/null); do
-		cp "$DTB_SRC" "$f"
-	done
-fi
-exit 0
