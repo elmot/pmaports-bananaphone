@@ -4,6 +4,9 @@ export component Demo inherits Window {
     background: #101820;
     in-out property <int> selected: 0;
     in-out property <int> count: 0;
+    in-out property <bool> bt_connected: false;
+    in-out property <string> call_state: "idle";
+    in-out property <string> caller_id: "";
 
     forward-focus: fs;
     fs := FocusScope {
@@ -25,17 +28,17 @@ export component Demo inherits Window {
 
         VerticalLayout {
             padding: 16px;
-            spacing: 12px;
+            spacing: 10px;
             Text {
-                text: "Slint Keypad Demo";
-                color: #00e5ff;
-                font-size: 16px;
+                text: root.call_state == "incoming" ? "Incoming Call: " + root.caller_id : "Slint Keypad Demo";
+                color: root.call_state == "incoming" ? #ff5252 : #00e5ff;
+                font-size: 15px;
                 horizontal-alignment: center;
             }
             Text {
-                text: "Activated: " + root.count;
+                text: "BT: " + (root.bt_connected ? "Connected" : "Idle") + " | Act: " + root.count;
                 color: #ffffff;
-                font-size: 13px;
+                font-size: 12px;
                 horizontal-alignment: center;
             }
             for item[idx] in ["Answer Call", "Loudspeaker", "Settings"]: Rectangle {
