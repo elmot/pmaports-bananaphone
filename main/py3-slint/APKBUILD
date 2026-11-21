@@ -1,7 +1,7 @@
 # Maintainer:
 pkgname=py3-slint
 pkgver=1.10.0
-pkgrel=1
+pkgrel=0
 pkgdesc="Python bindings for the Slint UI toolkit"
 url="https://slint.dev/"
 arch="armv7 aarch64 x86_64"
@@ -32,7 +32,6 @@ build() {
 		--release \
 		--strip \
 		--auditwheel=skip \
-		--features backend-linuxkms \
 		--out "$builddir/dist"
 }
 
