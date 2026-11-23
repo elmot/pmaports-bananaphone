@@ -1,12 +1,14 @@
 # Maintainer:
 pkgname=py3-slint
 pkgver=1.10.0
-pkgrel=1
+pkgrel=2
 pkgdesc="Python bindings for the Slint UI toolkit"
 url="https://slint.dev/"
 arch="armv7 aarch64 x86_64"
 license="GPL-3.0-only"
 depends="
+	fontconfig
+	freetype
 	libxkbcommon
 	mesa-egl
 	python3
@@ -14,27 +16,70 @@ depends="
 "
 makedepends="
 	cargo
+	clang
+	clang18-libclang
+	curl
 	eudev-dev
+	expat-dev
+	fontconfig-dev
+	freetype-dev
+	gn
+	harfbuzz-dev
+	icu-dev
 	libinput-dev
+	libjpeg-turbo-dev
+	libpng-dev
+	libwebp-dev
 	libxkbcommon-dev
 	maturin
 	mesa-dev
+	ninja-build
 	py3-gpep517
 	py3-installer
 	python3-dev
 	wayland-dev
+	zlib-dev
 "
 options="!check net" # cargo fetches crates during build
-source="slint-$pkgver.tar.gz::https://github.com/slint-ui/slint/archive/refs/tags/v$pkgver.tar.gz"
+source="
+	slint-$pkgver.tar.gz::https://github.com/slint-ui/slint/archive/refs/tags/v$pkgver.tar.gz
+	skia-m133-0.81.0.tar.gz::https://codeload.github.com/rust-skia/skia/tar.gz/m133-0.81.0
+"
 builddir="$srcdir/slint-$pkgver"
 
 build() {
 	cd "$builddir/api/python"
+	sed -i \
+		-e 's/skia_use_wuffs = true/skia_use_wuffs = false/' \
+		-e 's/skia_use_piex = !is_win && !is_wasm/skia_use_piex = false/' \
+		-e 's/skia_use_perfetto = is_linux || is_mac || is_android/skia_use_perfetto = false/' \
+		"$srcdir/skia-m133-0.81.0/gn/skia.gni"
+	export SKIA_USE_SYSTEM_LIBRARIES=1
+	export SKIA_SOURCE_DIR="$srcdir/skia-m133-0.81.0"
+	export SKIA_GN_COMMAND="/usr/bin/gn"
+	export SKIA_NINJA_COMMAND="/usr/lib/ninja-build/bin/ninja"
+	if [ -x /native/usr/lib/crossdirect/armv7/clang ]; then
+		export CLANGCC="/native/usr/lib/crossdirect/armv7/clang"
+		export CLANGCXX="/native/usr/lib/crossdirect/armv7/clang++"
+		export CC="/native/usr/lib/crossdirect/armv7/clang"
+		export CXX="/native/usr/lib/crossdirect/armv7/clang++"
+	fi
+	local _cppver="$(g++ -dumpversion)"
+	local _cppinc="-I/usr/include/c++/$_cppver -I/usr/include/c++/$_cppver/armv7-alpine-linux-musleabihf"
+	export CXXFLAGS="${CXXFLAGS:-} $_cppinc"
+	export BINDGEN_EXTRA_CLANG_ARGS="$_cppinc"
+	export LIBCLANG_PATH="/usr/lib/llvm18/lib"
+	cargo fetch --manifest-path "$builddir/api/python/Cargo.toml"
+	for _f in "${CARGO_HOME:-$HOME/.cargo}"/registry/src/*/skia-bindings-*/build_support/skia_bindgen.rs; do
+		if [ -f "$_f" ] && ! grep -q 'std::__rb_tree' "$_f"; then
+			sed -i 's/"std::_Rb_tree\.\*",/"std::_Rb_tree.*", "std::__rb_tree.*",/' "$_f"
+		fi
+	done
 	RUSTFLAGS="--cap-lints warn" maturin build \
 		--release \
 		--strip \
 		--auditwheel=skip \
-		--features backend-linuxkms-noseat \
+		--features backend-linuxkms-noseat,renderer-skia \
 		--out "$builddir/dist"
 }
 
@@ -47,4 +92,5 @@ package() {
 
 sha512sums="
 e7463771e4282238bdb6e1405c0fa3bf2231254457430e3cca743331d653b4bfb4da65b94f136ecbe13a89529f2ee27aadb3b799902db51a9a45a961d1d35b48  slint-1.10.0.tar.gz
+044fe85d5bbd82935eb4b41474662405768b64a8614f81b2290473ec6d08a2cae6cf16f8e81b841536a03e6f0167d058373f0fa46497560b55d0cdc6f83725e1  skia-m133-0.81.0.tar.gz
 "

@@ -27,10 +27,24 @@ export component Demo inherits Window {
         }
 
         VerticalLayout {
-            padding: 16px;
-            spacing: 10px;
+            padding: 12px;
+            spacing: 8px;
+
+            HorizontalLayout {
+                alignment: center;
+                height: 36px;
+                Path {
+                    width: 36px;
+                    height: 36px;
+                    commands: "M 18 2 L 23 13 L 35 13 L 25 21 L 29 33 L 18 25 L 7 33 L 11 21 L 1 13 L 13 13 Z";
+                    fill: root.call_state == "incoming" ? #ff5252 : #00e5ff;
+                    stroke: #ffffff;
+                    stroke-width: 1.5px;
+                }
+            }
+
             Text {
-                text: root.call_state == "incoming" ? "Incoming Call: " + root.caller_id : "Slint Keypad Demo";
+                text: root.call_state == "incoming" ? "Incoming: " + root.caller_id : "Slint Skia Path Demo";
                 color: root.call_state == "incoming" ? #ff5252 : #00e5ff;
                 font-size: 15px;
                 horizontal-alignment: center;
@@ -42,7 +56,7 @@ export component Demo inherits Window {
                 horizontal-alignment: center;
             }
             for item[idx] in ["Answer Call", "Loudspeaker", "Settings"]: Rectangle {
-                height: 44px;
+                height: 40px;
                 border-radius: 6px;
                 background: idx == root.selected ? #005577 : #1e2a36;
                 border-width: idx == root.selected ? 2px : 0px;
